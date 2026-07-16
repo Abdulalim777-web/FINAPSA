@@ -1,0 +1,166 @@
+﻿@model FINAPSA.Models.Student
+@{
+    ViewData["Title"] = "My Details";
+    var teacher = Model.ClassRef?.ClassTeachers?.FirstOrDefault(ct => ct.IsActive);
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm">
+        <i class="fa fa-arrow-left"></i> Back to Dashboard
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">My Details</h4>
+        <small class="text-muted">Your profile information</small>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+
+                <!-- Profile Header -->
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                    <div class="sp-avatar"
+                         style="width:54px;height:54px;font-size:1.3rem;background:rgba(99,102,241,0.12);color:#4f46e5;border:none;flex-shrink:0">
+                        @(Model.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                    </div>
+                    <div>
+                        <div class="fw-bold fs-5 lh-sm">@Model.FullName</div>
+                        <span class="badge mt-1"
+                              style="background:rgba(99,102,241,0.12);color:#4f46e5">
+                            @(Model.Class ?? Model.ClassRef?.ClassName ?? "No class assigned")
+                        </span>
+                         
+                    </div>
+                </div>
+
+                <!-- Student Information -->
+                <h6 class="fw-bold mb-3">Basic Information</h6>
+                <ul class="list-unstyled mb-4">
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted"><i class="fa fa-user me-2"></i>Full Name</span>
+                        <span class="fw-semibold">@(Model.FullName ?? "—")</span>
+                    </li>
+
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted"><i class="fa fa-chalkboard me-2"></i>Class</span>
+                        <span class="fw-semibold">@(Model.Class ?? Model.ClassRef?.ClassName ?? "Not assigned")</span>
+                    </li>
+
+                    @if (Model.User != null)
+                    {
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted"><i class="fa fa-envelope me-2"></i>Email</span>
+                            <span class="fw-semibold">@(Model.User.Email ?? "")</span>
+                        </li>
+                    }
+
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted"><i class="fa fa-wallet me-2"></i>Account Balance</span>
+                        <span class="fw-semibold @(Model.Balance < 0 ? "text-danger" : "text-success")">
+                            ₦@Model.Balance.ToString("N2")
+                        </span>
+                    </li>
+                </ul>
+
+                <!-- Teacher Information -->
+                @if (teacher != null && teacher.Staff != null)
+                {
+                    <h6 class="fw-bold mb-3">Class Teacher</h6>
+                    <div class="bg-light p-3 rounded-3 mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="sp-avatar"
+                                 style="width:50px;height:50px;font-size:1.1rem;background:rgba(34,197,94,0.12);color:#22c55e;border:none;">
+                                @(teacher.Staff.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">@teacher.Staff.FullName</div>
+                                <small class="text-muted">@(teacher.Subject ?? "Form Teacher")</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(teacher.Staff.Email) || !string.IsNullOrEmpty(teacher.Staff.PhoneNumber))
+                    {
+                        <h6 class="fw-bold mb-3">Teacher Contact</h6>
+                        <ul class="list-unstyled mb-4">
+                            @if (!string.IsNullOrEmpty(teacher.Staff.Email))
+                            {
+                                <li class="d-flex justify-content-between py-2 border-bottom">
+                                    <span class="text-muted"><i class="fa fa-envelope me-2"></i>Email</span>
+                                    <span class="fw-semibold">
+                                        <a href="mailto:@teacher.Staff.Email">@teacher.Staff.Email</a>
+                                    </span>
+                                </li>
+                            }
+                            @if (!string.IsNullOrEmpty(teacher.Staff.PhoneNumber))
+                            {
+                                <li class="d-flex justify-content-between py-2 border-bottom">
+                                    <span class="text-muted"><i class="fa fa-phone me-2"></i>Phone</span>
+                                    <span class="fw-semibold">@teacher.Staff.PhoneNumber</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-info-circle me-2"></i>
+                        No teacher assigned to your class yet.
+                    </div>
+                }
+
+                <!-- Additional Actions -->
+                <div class="mt-4">
+                    <a asp-action="TermSummary" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+                        <i class="fa fa-chart-bar me-2"></i>View Payment History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-body p-3">
+                <small class="text-muted d-block mb-2">Student ID</small>
+                <div class="fw-bold fs-5">@Model.Id</div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-body p-3">
+                <small class="text-muted d-block mb-2">Account Status</small>
+                <div class="fw-bold fs-5">
+                    <span class="badge bg-success">Active</span>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Payments?.Any() == true)
+        {
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-3">
+                    <small class="text-muted d-block mb-2">Total Payments</small>
+                    <div class="fw-bold fs-5">
+                        â‚¦@Model.Payments.Where(p => p.Status.ToString() == "Approved").Sum(p => p.Amount).ToString("N2")
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .sp-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 600;
+    }
+</style>
+

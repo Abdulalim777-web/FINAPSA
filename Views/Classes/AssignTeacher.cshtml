@@ -1,0 +1,120 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Assign Teacher to Class";
+    int classId = ViewBag.ClassId;
+    string className = ViewBag.ClassName;
+    var teachers = (List<FINAPSA.Models.Staff>)ViewBag.Teachers;
+    var currentTeachers = (List<FINAPSA.Models.ClassTeacher>)ViewBag.CurrentTeachers;
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a asp-action="ManageClasses" class="btn btn-outline-secondary btn-sm">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Assign Teacher to @className</h4>
+        <small class="text-muted">Select a teacher to assign to this class</small>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row g-3">
+    <!-- Form -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Assign New Teacher</h6>
+                <form asp-action="AssignTeacher" method="post">
+                    <input type="hidden" name="classId" value="@classId" />
+
+                    <div class="mb-3">
+                        <label for="staffId" class="form-label">Teacher <span class="text-danger">*</span></label>
+                        <select name="staffId" id="staffId" class="form-select" required>
+                            <option value="">-- Select a teacher --</option>
+                            @foreach (var teacher in teachers)
+                            {
+                                var isAssigned = currentTeachers?.Any(ct => ct.StaffId == teacher.Id && ct.IsActive) ?? false;
+                                <option value="@teacher.Id" disabled="@isAssigned">
+                                    @teacher.FullName
+                                    @(isAssigned ? " (Already assigned)" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject (Optional)</label>
+                        <input type="text" name="subject" id="subject" class="form-control" placeholder="e.g., English, Mathematics" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa fa-check me-2"></i>Assign Teacher
+                        </button>
+                        <a asp-action="ManageClasses" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Teachers -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3">Currently Assigned Teachers</h6>
+
+                @if (currentTeachers?.Any(ct => ct.IsActive) == true)
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var ct in currentTeachers.Where(ct => ct.IsActive))
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start py-3 px-0">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">@ct.Staff?.FullName</div>
+                                    @if (!string.IsNullOrEmpty(ct.Subject))
+                                    {
+                                        <small class="text-muted d-block">@ct.Subject</small>
+                                    }
+                                    <small class="text-muted d-block">Assigned: @ct.AssignedAt.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                <form asp-action="UnassignTeacher" method="post" style="display:inline">
+                                    <input type="hidden" name="classTeacherId" value="@ct.Id" />
+                                    <input type="hidden" name="classId" value="@classId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fa fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info small mb-0">
+                        <i class="fa fa-info-circle me-2"></i>
+                        No teacher assigned to this class yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

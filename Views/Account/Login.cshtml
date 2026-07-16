@@ -1,0 +1,88 @@
+@model FINAPSA.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="login-card">
+
+    <div class="text-center mb-4">
+        <div style="width:58px;height:58px;border-radius:14px;background:#dbeafe;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+            <i class="fa fa-graduation-cap fa-lg text-primary"></i>
+        </div>
+        <h5 class="fw-bold mb-0" style="color:#1e3a8a">FINAPSA</h5>
+        <small class="text-muted" style="font-size:0.75rem">School Finance & Administration Portal</small>
+    </div>
+
+    <hr style="border-color:#dbeafe;margin-bottom:20px" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 py-2 small mb-3">
+            <i class="fa fa-check-circle me-1"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 py-2 small mb-3">
+            <i class="fa fa-exclamation-circle me-1"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form asp-action="Login" method="post">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small rounded-3 mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="AdmissionNumber" class="form-label fw-semibold small">
+                <i class="fa fa-id-card me-1 text-primary"></i>Admission Number
+            </label>
+            <input asp-for="AdmissionNumber" class="form-control text-uppercase"
+                   placeholder="e.g. ADM001" autocomplete="username" style="letter-spacing:0.5px" />
+            <span asp-validation-for="AdmissionNumber" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="FullName" class="form-label fw-semibold small">
+                <i class="fa fa-user me-1 text-primary"></i>Full Name
+            </label>
+            <input asp-for="FullName" class="form-control text-uppercase"
+                   placeholder="YOUR FULL NAME" autocomplete="name" />
+            <span asp-validation-for="FullName" class="text-danger small"></span>
+            <div class="form-text" style="font-size:0.72rem">
+                Type your full name exactly as registered.
+                Admin: use your admission number + type <strong>ADMIN</strong> as full name.
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="loginBtn">
+            <i class="fa fa-sign-in-alt me-2"></i>
+            <span id="loginText">Sign In</span>
+            <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        </button>
+    </form>
+
+    <p class="text-center text-muted mt-4 mb-0" style="font-size:0.7rem">
+        &copy; @DateTime.Now.Year FINAPSA &middot; All rights reserved
+    </p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const form = document.querySelector("form[action*='Login']");
+        const btn = document.getElementById("loginBtn");
+        const text = document.getElementById("loginText");
+        const spinner = document.getElementById("loginSpinner");
+        form?.addEventListener("submit", () => {
+            btn.disabled = true;
+            text.textContent = "Signing in\u2026";
+            spinner.classList.remove("d-none");
+        });
+        ["AdmissionNumber", "FullName"].forEach(name => {
+            document.querySelector(`input[name='${name}']`)
+                ?.addEventListener("input", e => e.target.value = e.target.value.toUpperCase());
+        });
+    </script>
+}

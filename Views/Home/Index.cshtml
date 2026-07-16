@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+ 
+    
+        <div class="category-card">
+            <div class="row align-items-center">
+
+                <!-- LEFT CONTENT -->
+                <div class="col-md-6">
+                    <div class="category-card">
+                        <h1 class="hero-title">
+                            Discover new things <br />
+                            to enrich your skills <br />
+                            anytime
+                        </h1>
+                    </div>    
+                    <br>
+                    <div class="category-card">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <p class="hero-text">
+                                Welcome back to FINAPSA! Access your courses and continue your learning journey.
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="hero-text">
+                                Log in with your Admission Number and Full Name in UPPER CASE.
+                            </p>
+
+                            <div class="hero-actions">
+                                <a href="/Account/Login" class="btn btn-primary btn-lg rounded-pill">
+                                    Log In
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- RIGHT IMAGE -->
+                <div class="col-md-6 text-center">
+                    <div class="hero-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b"
+                            alt="Student"
+                            class="hero-image" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    
+
+
+<!-- CATEGORIES -->
+<section class="category-section">
+    <div class="container text-center">
+        <div class="container text-center">
+            <div class="col-md-8">
+                <div class="category-card">
+                    <h3 class="section-title text-center">Browse courses by category</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="category-card">
+                    <span class="icon bg-primary">??</span>
+                    <h6>Science</h6>
+                    <p>35 Courses</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="category-card">
+                    <span class="icon bg-success">??</span>
+                    <h6>Finance</h6>
+                    <p>18 Courses</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="category-card">
+                    <span class="icon bg-warning">?</span>
+                    <h6>Sports</h6>
+                    <p>12 Courses</p>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="category-card">
+                    <span class="icon bg-danger">??</span>
+                    <h6>Management</h6>
+                    <p>22 Courses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

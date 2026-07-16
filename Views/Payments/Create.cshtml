@@ -1,0 +1,262 @@
+﻿@model FINAPSA.Models.Payment
+@{
+    ViewData["Title"] = "New Payment";
+    var studentList = ViewData["StudentId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+    var isStudent   = User.IsInRole("Student");
+}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa fa-arrow-left"></i>
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Make Payment</h4>
+        <small class="text-muted">Choose how you want to pay</small>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+
+        @* â”€â”€ SHARED FIELDS CARD â”€â”€ *@
+        <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-body p-4">
+                <h6 class="fw-semibold mb-3">
+                    <i class="fa fa-info-circle me-2 text-primary"></i>Payment Details
+                </h6>
+
+                @* Student field *@
+                @if (isStudent)
+                {
+                    <input type="hidden" id="sharedStudentId" value="@Model.StudentId" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Student</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fa fa-user text-muted"></i>
+                            </span>
+                            <input class="form-control bg-light" value="@ViewBag.StudentName" readonly />
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Student</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fa fa-user text-muted"></i>
+                            </span>
+                            <select id="sharedStudentId" asp-items="studentList" class="form-select">
+                                <option value="">Select student </option>
+                            </select>
+                        </div>
+                    </div>
+                }
+
+                @* Amount *@
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Amount</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white fw-bold text-success"></span>
+                        <input type="number" id="sharedAmount" class="form-control"
+                               step="0.01" min="0.01" placeholder="0.00" />
+                    </div>
+                </div>
+
+                @* Purpose *@
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Purpose</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="fa fa-tag text-muted"></i>
+                        </span>
+                        <select id="sharedPurpose" class="form-select">
+                            <option value="">Select purpose</option>
+                            <option value="1">School Fees</option>
+                            <option value="2">Donations</option>
+                            <option value="3">Books</option>
+                            <option value="4">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                @* Date *@
+                <div class="mb-0">
+                    <label class="form-label fw-semibold">Date</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <i class="fa fa-calendar text-muted"></i>
+                        </span>
+                        <input type="date" id="sharedDate" class="form-control"
+                               value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* â”€â”€ PAYMENT METHOD TABS â”€â”€ *@
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h6 class="fw-semibold mb-3">
+                    <i class="fa fa-credit-card me-2 text-primary"></i>Payment Method
+                </h6>
+
+                <ul class="nav nav-pills mb-3 gap-2" id="paymentTabs">
+                    @if (isStudent)
+                    {
+                        <li class="nav-item">
+                            <button class="nav-link active px-4" id="tab-paystack"
+                                    onclick="switchTab('paystack')">
+                                <i class="fa fa-bolt me-1"></i> Pay with Paystack
+                            </button>
+                        </li>
+                    }
+                    <li class="nav-item">
+                        <button class="nav-link @(isStudent ? "" : "active") px-4" id="tab-manual"
+                                onclick="switchTab('manual')">
+                            <i class="fa fa-upload me-1"></i> Upload Receipt
+                        </button>
+                    </li>
+                </ul>
+
+                @* â”€â”€ PAYSTACK PANEL â”€â”€ *@
+                @if (isStudent)
+                {
+                    <div id="panel-paystack">
+                        <div class="alert alert-primary d-flex align-items-start gap-3 rounded-3 border-0 mb-4"
+                             style="background:#eff6ff">
+                            <div style="width:38px;height:38px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                                <i class="fa fa-shield-halved text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="fw-semibold small">Secure online payment</div>
+                                <div class="small text-muted">
+                                    Pay instantly with your card or bank transfer via Paystack.
+                                    Your payment is recorded automatically after success.
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="paystackForm" asp-action="PaystackInitialize" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="amount"       id="ps-amount" />
+                            <input type="hidden" name="purposeValue" id="ps-purpose" />
+                            <input type="hidden" name="datePaid"     id="ps-date" />
+
+                            <button type="submit" class="btn btn-primary w-100 py-2"
+                                    id="paystackBtn" onclick="return preparePaystack()">
+                                <i class="fa fa-lock me-2"></i>
+                                Pay Now with Paystack
+                            </button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <img src="https://res.cloudinary.com/paystack/image/upload/v1712141714/paystack-badge-cards-with-text_arv3xv.svg"
+                                 alt="Paystack accepted cards" style="height:28px;opacity:0.75" />
+                        </div>
+                    </div>
+                }
+
+                @* â”€â”€ MANUAL RECEIPT PANEL â”€â”€ *@
+                <div id="panel-manual" style="display:@(isStudent ? "none" : "block")">
+                    <div class="alert alert-secondary d-flex align-items-start gap-3 rounded-3 border-0 mb-4"
+                         style="background:#f8fafc">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <i class="fa fa-file-image text-secondary"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold small">Manual receipt upload</div>
+                            <div class="small text-muted">
+                                Upload your bank teller or transfer receipt. The bursar will review and approve it.
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Create" method="post" enctype="multipart/form-data"
+                          id="manualForm" onsubmit="return prepareManual()">
+                        @Html.AntiForgeryToken()
+
+                         
+                        <input type="hidden" name="StudentId" id="m-studentId" />
+                        <input type="hidden" name="Amount"    id="m-amount" />
+                        <input type="hidden" name="Purpose"   id="m-purpose" />
+                        <input type="hidden" name="DatePaid"  id="m-date" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Receipt File <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="receiptFile" class="form-control"
+                                   accept=".pdf,.jpg,.jpeg,.png" required />
+                            <div class="form-text">PDF or image (JPG/PNG). Max 5 MB.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-outline-primary w-100 py-2">
+                            <i class="fa fa-upload me-2"></i> Submit for Bursar Approval
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a asp-action="Index" class="text-muted small">
+                <i class="fa fa-arrow-left me-1"></i> Back to payments
+            </a>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+
+    <script>
+        // â”€â”€ Tab switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        function switchTab(tab) {
+            document.getElementById('panel-paystack') && (document.getElementById('panel-paystack').style.display = 'none');
+            document.getElementById('panel-manual').style.display  = 'none';
+            document.getElementById(`panel-${tab}`).style.display  = 'block';
+            document.querySelectorAll('#paymentTabs .nav-link').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${tab}`)?.classList.add('active');
+        }
+
+        // â”€â”€ Validate shared fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        function validateShared() {
+            const amount = parseFloat(document.getElementById('sharedAmount').value);
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount.');
+                return false;
+            }
+            const purpose = document.getElementById('sharedPurpose').value;
+            if (!purpose) {
+                alert('Please select a payment purpose.');
+                return false;
+            }
+            return true;
+        }
+
+        // â”€â”€ Paystack: copy shared fields â†’ hidden inputs â”€â”€â”€â”€â”€
+        function preparePaystack() {
+            if (!validateShared()) return false;
+            document.getElementById('ps-amount').value  = document.getElementById('sharedAmount').value;
+            document.getElementById('ps-purpose').value = document.getElementById('sharedPurpose').value;
+            document.getElementById('ps-date').value    = document.getElementById('sharedDate').value;
+            return true;
+        }
+
+        // â”€â”€ Manual: copy shared fields â†’ hidden inputs â”€â”€â”€â”€â”€â”€â”€
+        function prepareManual() {
+            if (!validateShared()) return false;
+            const sid = document.getElementById('sharedStudentId');
+            document.getElementById('m-studentId').value = sid?.value ?? '';
+            document.getElementById('m-amount').value    = document.getElementById('sharedAmount').value;
+            document.getElementById('m-purpose').value   = document.getElementById('sharedPurpose').value;
+            document.getElementById('m-date').value      = document.getElementById('sharedDate').value;
+            return true;
+        }
+    </script>
+}
+

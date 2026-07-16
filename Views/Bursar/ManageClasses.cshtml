@@ -1,0 +1,112 @@
+﻿@model List<FINAPSA.Models.Class>
+@{
+    ViewData["Title"] = "Manage Classes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Manage Classes</h4>
+        <small class="text-muted">Create and manage classes, assign teachers</small>
+    </div>
+    <a asp-action="CreateClass" class="btn btn-primary btn-sm">
+        <i class="fa fa-plus me-2"></i>New Class
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa fa-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa fa-exclamation-circle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model.Count == 0)
+{
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center p-5">
+            <i class="fa fa-inbox" style="font-size:2.5rem;color:#9ca3af;margin-bottom:1rem;display:block;"></i>
+            <p class="text-muted mb-3">No classes created yet</p>
+            <a asp-action="CreateClass" class="btn btn-primary btn-sm">
+                <i class="fa fa-plus me-2"></i>Create First Class
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var cls in Model)
+        {
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">@cls.ClassName</h6>
+                                <small class="text-muted d-block">
+                                    @(cls.Students?.Count ?? 0) student(s)
+                                </small>
+                            </div>
+                            <span class="badge bg-light text-dark">
+                                @(cls.ClassTeachers?.Where(ct => ct.IsActive).Count() ?? 0) Teacher(s)
+                            </span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(cls.Description))
+                        {
+                            <p class="text-muted small mb-3">@cls.Description</p>
+                        }
+
+                        <!-- Teachers List -->
+                        @if (cls.ClassTeachers?.Any(ct => ct.IsActive) == true)
+                        {
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-2">Assigned Teachers:</small>
+                                @foreach (var ct in cls.ClassTeachers.Where(ct => ct.IsActive))
+                                {
+                                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                        <div>
+                                            <span class="fw-semibold small">@ct.Staff?.FullName</span>
+                                            @if (!string.IsNullOrEmpty(ct.Subject))
+                                            {
+                                                <br />
+                                                <small class="text-muted">@ct.Subject</small>
+                                            }
+                                        </div>
+                                        <form asp-action="UnassignTeacher" method="post" style="display:inline">
+                                            <input type="hidden" name="classTeacherId" value="@ct.Id" />
+                                            <input type="hidden" name="classId" value="@cls.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove teacher">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 mt-3">
+                            <a asp-action="AssignTeacher" asp-route-classId="@cls.Id" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                <i class="fa fa-user-plus me-1"></i> Assign Teacher
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
