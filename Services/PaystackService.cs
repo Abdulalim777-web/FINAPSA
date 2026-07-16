@@ -1,6 +1,9 @@
+using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace FINAPSA.Services
 {
@@ -12,8 +15,10 @@ namespace FINAPSA.Services
         public PaystackService(IConfiguration config, HttpClient http)
         {
             _http      = http;
+            // Prefer configuration, fall back to environment variable for production deployments
             _secretKey = config["Paystack:SecretKey"]
-                         ?? throw new InvalidOperationException("Paystack SecretKey not configured.");
+                         ?? Environment.GetEnvironmentVariable("PAYSTACK_SECRET")
+                         ?? throw new InvalidOperationException("Paystack SecretKey not configured. Set Paystack:SecretKey in configuration or PAYSTACK_SECRET env var.");
 
             _http.BaseAddress = new Uri("https://api.paystack.co/");
             _http.DefaultRequestHeaders.Authorization =

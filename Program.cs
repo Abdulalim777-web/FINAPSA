@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using FINAPSA.Data;
 using FINAPSA.Models;
 using FINAPSA.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,27 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 var app = builder.Build();
+
+// Enable forwarded headers support (recommended when running behind a reverse proxy)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Production-ready error handling and security
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+else
+{
+    // In development show detailed errors
+    app.UseDeveloperExceptionPage();
+}
+
+// Convert status codes (404/500) to the Error view so users see a friendly UI
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
