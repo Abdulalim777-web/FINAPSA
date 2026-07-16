@@ -1,0 +1,21 @@
+# Use the stable SQL Server Ubuntu 20.04 image as a base
+FROM mcr.microsoft.com/mssql/server:2022-CU23-ubuntu-20.04
+
+USER root
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y cmake build-essential git && rm -rf /var/lib/apt/lists/*
+
+# Clone and build the memory bypass utility
+RUN git clone https://github.com/awakecoding/mssql-memory-bypass.git /tmp/bypass \
+    && cd /tmp/bypass \
+    && cmake . \
+    && make \
+    && cp fake_meminfo.so /opt/mssql/lib/fake_meminfo.so \
+    && rm -rf /tmp/bypass
+
+# Set the environment variables to bypass the 2GB check and limit SQL memory usage
+ENV LD_PRELOAD=/opt/mssql/lib/fake_meminfo.so
+ENV MSSQL_MEMORY_LIMIT_MB=750
+
+USER mssql
